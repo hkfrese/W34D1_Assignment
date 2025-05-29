@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streaming Platform - Systems Design</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #1e3c72;
+            margin-top: 0;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section h3 {
+            color: #2a5298;
+            margin-top: 30px;
+            font-size: 1.3em;
+        }
+        
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #e0e4e7;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .diagram-title {
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #1e3c72;
+            font-size: 1.2em;
+        }
+        
+        .layer {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .client-layer {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+        
+        .api-layer {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+        
+        .service-layer {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+        
+        .data-layer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .component {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            font-weight: 500;
+        }
+        
+        .arrow {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .api-spec {
+            background: #f0f8ff;
+            border: 1px solid #b0d4ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.8em;
+        }
+        
+        .get { background: #4CAF50; color: white; }
+        .post { background: #2196F3; color: white; }
+        .put { background: #FF9800; color: white; }
+        .delete { background: #f44336; color: white; }
+        
+        .schema-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .schema-table th,
+        .schema-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e4e7;
+        }
+        
+        .schema-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .schema-table tr:hover {
+            background-color: #f8f9ff;
+        }
+        
+        .icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #e17055;
+        }
+        
+        .microservice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+        
+        .microservice-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+        
+        .communication-flow {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e0e4e7;
+        }
+        
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .bottleneck {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #f39c12;
+        }
+        
+        .solution {
+            background: #d1f2eb;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Video Streaming Platform</h1>
+            <p>Complete Systems Design Solution</p>
+        </div>
+        
+        <div class="content">
+            <!-- High-Level Architecture -->
+            <div class="section">
+                <h2><span class="icon">🏗️</span>High-Level Architecture</h2>
+                
+                <div class="architecture-diagram">
+                    <div class="diagram-title">System Architecture Overview</div>
+                    
+                    <div class="layer client-layer">
+                        <strong>Client Layer</strong><br>
+                        <div class="component">Web App (React)</div>
+                        <div class="component">Mobile App (iOS/Android)</div>
+                        <div class="component">Smart TV Apps</div>
+                    </div>
+                    
+                    <div class="arrow">↓</div>
+                    
+                    <div class="layer api-layer">
+                        <strong>API Gateway & CDN</strong><br>
+                        <div class="component">Load Balancer</div>
+                        <div class="component">API Gateway</div>
+                        <div class="component">CDN (CloudFront)</div>
+                        <div class="component">Authentication Service</div>
+                    </div>
+                    
+                    <div class="arrow">↓</div>
+                    
+                    <div class="layer service-layer">
+                        <strong>Microservices Layer</strong><br>
+                        <div class="component">User Service</div>
+                        <div class="component">Video Service</div>
+                        <div class="component">Notification Service</div>
+                        <div class="component">Subscription Service</div>
+                        <div class="component">Search Service</div>
+                        <div class="component">Analytics Service</div>
+                    </div>
+                    
+                    <div class="arrow">↓</div>
+                    
+                    <div class="layer data-layer">
+                        <strong>Data & Storage Layer</strong><br>
+                        <div class="component">PostgreSQL (Metadata)</div>
+                        <div class="component">MongoDB (Content)</div>
+                        <div class="component">Redis (Cache)</div>
+                        <div class="component">S3 (Video Storage)</div>
+                        <div class="component">Elasticsearch (Search)</div>
+                        <div class="component">Kafka (Message Queue)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Specifications -->
+            <div class="section">
+                <h2><span class="icon">🔌</span>API Specifications</h2>
+                
+                <div class="microservice-grid">
+                    <div class="microservice-card">
+                        <h3>User Service API</h3>
+                        
+                        <div class="api-spec">
+                            <div><span class="method post">POST</span><strong>/api/users/register</strong></div>
+                            <p>Register a new user account</p>
+                            <div class="code-block">
+{
+  "email": "user@example.com",
+  "username": "johndoe",
+  "password": "hashedPassword",
+  "displayName": "John Doe"
+}
+
+Response: {
+  "userId": "uuid",
+  "message": "User created successfully",
+  "token": "jwt_token"
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method get">GET</span><strong>/api/users/{userId}/profile</strong></div>
+                            <p>Get user profile information</p>
+                            <div class="code-block">
+Response: {
+  "userId": "uuid",
+  "username": "johndoe",
+  "displayName": "John Doe",
+  "subscriberCount": 1250,
+  "videoCount": 42,
+  "joinDate": "2024-01-15T10:30:00Z"
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method put">PUT</span><strong>/api/users/{userId}/profile</strong></div>
+                            <p>Update user profile</p>
+                        </div>
+                    </div>
+                    
+                    <div class="microservice-card">
+                        <h3>Video Service API</h3>
+                        
+                        <div class="api-spec">
+                            <div><span class="method post">POST</span><strong>/api/videos/upload</strong></div>
+                            <p>Upload a new video (multipart form data)</p>
+                            <div class="code-block">
+Form Data:
+- video: [video file]
+- title: "My Awesome Video"
+- description: "Video description"
+- tags: ["tech", "tutorial"]
+- category: "education"
+
+Response: {
+  "videoId": "uuid",
+  "uploadStatus": "processing",
+  "message": "Video uploaded successfully"
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method get">GET</span><strong>/api/videos/{videoId}</strong></div>
+                            <p>Get video metadata and streaming URLs</p>
+                            <div class="code-block">
+Response: {
+  "videoId": "uuid",
+  "title": "My Awesome Video",
+  "description": "Video description",
+  "duration": 1800,
+  "views": 15420,
+  "likes": 312,
+  "uploadDate": "2024-02-15T14:20:00Z",
+  "streamingUrls": {
+    "720p": "https://cdn.example.com/video/720p.m3u8",
+    "1080p": "https://cdn.example.com/video/1080p.m3u8"
+  },
+  "thumbnail": "https://cdn.example.com/thumbs/video.jpg"
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method get">GET</span><strong>/api/videos/trending</strong></div>
+                            <p>Get trending videos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="microservice-card">
+                        <h3>Notification Service API</h3>
+                        
+                        <div class="api-spec">
+                            <div><span class="method post">POST</span><strong>/api/notifications/send</strong></div>
+                            <p>Send notification to subscribers</p>
+                            <div class="code-block">
+{
+  "type": "new_video",
+  "channelId": "uuid",
+  "videoId": "uuid",
+  "message": "New video uploaded: My Awesome Video",
+  "recipients": ["user1", "user2"]
+}
+
+Response: {
+  "notificationId": "uuid",
+  "status": "sent",
+  "deliveredCount": 1250
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method get">GET</span><strong>/api/notifications/{userId}</strong></div>
+                            <p>Get user notifications</p>
+                            <div class="code-block">
+Response: {
+  "notifications": [
+    {
+      "id": "uuid",
+      "type": "new_video",
+      "message": "TechChannel uploaded: React Tutorial",
+      "timestamp": "2024-02-20T09:15:00Z",
+      "read": false,
+      "videoId": "uuid"
+    }
+  ],
+  "unreadCount": 5
+}</div>
+                        </div>
+                        
+                        <div class="api-spec">
+                            <div><span class="method put">PUT</span><strong>/api/notifications/{notificationId}/read</strong></div>
+                            <p>Mark notification as read</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Schema -->
+            <div class="section">
+                <h2><span class="icon">🗃️</span>Database Schema</h2>
+                
+                <h3>PostgreSQL - Core Metadata</h3>
+                
+                <table class="schema-table">
+                    <thead>
+                        <tr>
+                            <th colspan="4">users</th>
+                        </tr>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>user_id</td>
+                            <td>UUID</td>
+                            <td>PRIMARY KEY</td>
+                            <td>Unique user identifier</td>
+                        </tr>
+                        <tr>
+                            <td>email</td>
+                            <td>VARCHAR(255)</td>
+                            <td>UNIQUE, NOT NULL</td>
+                            <td>User email address</td>
+                        </tr>
+                        <tr>
+                            <td>username</td>
+                            <td>VARCHAR(50)</td>
+                            <td>UNIQUE, NOT NULL</td>
+                            <td>Unique username</td>
+                        </tr>
+                        <tr>
+                            <td>display_name</td>
+                            <td>VARCHAR(100)</td>
+                            <td>NOT NULL</td>
+                            <td>Display name</td>
+                        </tr>
+                        <tr>
+                            <td>password_hash</td>
+                            <td>VARCHAR(255)</td>
+                            <td>NOT NULL</td>
+                            <td>Hashed password</td>
+                        </tr>
+                        <tr>
+                            <td>created_at</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT NOW()</td>
+                            <td>Account creation date</td>
+                        </tr>
+                        <tr>
+                            <td>is_verified</td>
+                            <td>BOOLEAN</td>
+                            <td>DEFAULT FALSE</td>
+                            <td>Email verification status</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <table class="schema-table">
+                    <thead>
+                        <tr>
+                            <th colspan="4">videos</th>
+                        </tr>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>video_id</td>
+                            <td>UUID</td>
+                            <td>PRIMARY KEY</td>
+                            <td>Unique video identifier</td>
+                        </tr>
+                        <tr>
+                            <td>user_id</td>
+                            <td>UUID</td>
+                            <td>FOREIGN KEY</td>
+                            <td>Video owner</td>
+                        </tr>
+                        <tr>
+                            <td>title</td>
+                            <td>VARCHAR(200)</td>
+                            <td>NOT NULL</td>
+                            <td>Video title</td>
+                        </tr>
+                        <tr>
+                            <td>description</td>
+                            <td>TEXT</td>
+                            <td></td>
+                            <td>Video description</td>
+                        </tr>
+                        <tr>
+                            <td>duration</td>
+                            <td>INTEGER</td>
+                            <td>NOT NULL</td>
+                            <td>Duration in seconds</td>
+                        </tr>
+                        <tr>
+                            <td>file_size</td>
+                            <td>BIGINT</td>
+                            <td>NOT NULL</td>
+                            <td>File size in bytes</td>
+                        </tr>
+                        <tr>
+                            <td>upload_date</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT NOW()</td>
+                            <td>Upload timestamp</td>
+                        </tr>
+                        <tr>
+                            <td>status</td>
+                            <td>ENUM</td>
+                            <td>NOT NULL</td>
+                            <td>processing, ready, failed</td>
+                        </tr>
+                        <tr>
+                            <td>view_count</td>
+                            <td>BIGINT</td>
+                            <td>DEFAULT 0</td>
+                            <td>Total view count</td>
+                        </tr>
+                        <tr>
+                            <td>like_count</td>
+                            <td>INTEGER</td>
+                            <td>DEFAULT 0</td>
+                            <td>Total likes</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <table class="schema-table">
+                    <thead>
+                        <tr>
+                            <th colspan="4">subscriptions</th>
+                        </tr>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>subscriber_id</td>
+                            <td>UUID</td>
+                            <td>FOREIGN KEY</td>
+                            <td>User who subscribes</td>
+                        </tr>
+                        <tr>
+                            <td>channel_id</td>
+                            <td>UUID</td>
+                            <td>FOREIGN KEY</td>
+                            <td>Channel being subscribed to</td>
+                        </tr>
+                        <tr>
+                            <td>subscribed_at</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT NOW()</td>
+                            <td>Subscription date</td>
+                        </tr>
+                        <tr>
+                            <td>notifications_enabled</td>
+                            <td>BOOLEAN</td>
+                            <td>DEFAULT TRUE</td>
+                            <td>Notification preference</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>MongoDB - Content & Analytics</h3>
+                
+                <div class="code-block">
+// Video Analytics Collection
+{
+  "_id": ObjectId,
+  "videoId": "uuid",
+  "metrics": {
+    "hourlyViews": [
+      {"hour": "2024-02-20T10:00:00Z", "views": 150},
+      {"hour": "2024-02-20T11:00:00Z", "views": 200}
+    ],
+    "demographics": {
+      "ageGroups": {"18-24": 35, "25-34": 42, "35-44": 23},
+      "countries": {"US": 45, "UK": 20, "CA": 15}
+    },
+    "engagement": {
+      "averageWatchTime": 450,
+      "retentionPoints": [95, 85, 70, 60, 45]
+    }
+  },
+  "lastUpdated": ISODate
+}
+
+// Comments Collection
+{
+  "_id": ObjectId,
+  "videoId": "uuid",
+  "userId": "uuid",
+  "content": "Great video!",
+  "timestamp": ISODate,
+  "likes": 5,
+  "replies": [
+    {
+      "userId": "uuid",
+      "content": "I agree!",
+      "timestamp": ISODate,
+      "likes": 2
+    }
+  ]
+}</div>
+            </div>
+
+            <!-- Communication Patterns -->
+            <div class="section">
+                <h2><span class="icon">🔄</span>Communication Patterns</h2>
+                
+                <h3>Video Upload Flow</h3>
+                <div class="communication-flow">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div>Client uploads video to Video Service via API Gateway</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div>Video Service stores raw file in S3 and creates database record</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div>Video Service publishes "video_uploaded" event to Kafka</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">4</div>
+                        <div>Processing Service consumes event and starts video transcoding</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">5</div>
+                        <div>After processing, publishes "video_ready" event to Kafka</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">6</div>
+                        <div>Notification Service consumes event and sends notifications to subscribers</div>
+                    </div>
+                </div>
+                
+                <h3>Real-time Notifications</h3>
+                <div class="communication-flow">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div>WebSocket connections maintained between clients and Notification Service</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div>Service events trigger notification creation in database</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div>Notification Service pushes real-time updates via WebSocket</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">4</div>
+                        <div>Mobile push notifications sent via FCM/APNS for offline users</div>
+                    </div>
+                </div>
+                
+                <h3>Communication Technologies</h3>
+                <div class="highlight">
+                    <strong>Synchronous Communication:</strong> REST APIs for request-response patterns, GraphQL for flexible client queries
+                    <br><br>
+                    <strong>Asynchronous Communication:</strong> Apache Kafka for event streaming, Redis Pub/Sub for real-time features
+                    <br><br>
+                    <strong>Real-time Communication:</strong> WebSocket connections for live notifications, Server-Sent Events for streaming updates
+                </div>
+            </div>
+
+            <!-- Scaling Considerations -->
+            <div class="section">
+                <h2><span class="icon">📈</span>Scaling Considerations & Bottlenecks</h2>
+                
+                <h3>Potential Bottlenecks</h3>
+                
+                <div class="bottleneck">
+                    <strong>🎯 Video Upload & Processing</strong>
+                    <p><strong>Problem:</strong> Large video files (GB+) cause upload timeouts and processing queues</p>
+                    <p><strong>Impact:</strong> Poor user experience, resource exhaustion</p>
+                </div>
+                
+                <div class="solution">
+                    <strong>🔧 Solutions:</strong>
+                    <ul>
+                        <li>Implement chunked/resumable uploads with presigned S3 URLs</li>
+                        <li>Use separate processing queue with horizontal scaling (AWS SQS + EC2 Auto Scaling)</li>
+                        <li>Implement adaptive bitrate streaming with multiple quality levels</li>
+                        <li>Use CDN for global video distribution (CloudFront with multiple edge locations)</li>
+                    </ul>
+                </div>
+                
+                <div class="bottleneck">
+                    <strong>🎯 Database Performance</strong>
+                    <p><strong>Problem:</strong> High read/write load on video metadata, user data, and analytics</p>
+                    <p><strong>Impact:</strong> Slow query response times, database locks</p>
+                </div>
+                
+                <div class="solution">
+                    <strong>🔧 Solutions:</strong>
+                    <ul>
+                        <li>Implement read replicas for PostgreSQL (95% reads, 5% writes)</li>
+                        <li>Use Redis caching for frequently accessed data (video metadata, user sessions)</li>
+                        <li>Partition large tables by date/region (video_analytics, user_interactions)</li>
+                        <li>Implement database connection pooling (PgBouncer)</li>
+                    </ul>
+                </div>
+                
+                <div class="bottleneck">
+                    <strong>🎯 Search Performance</strong>
+                    <p><strong>Problem:</strong> Complex video search with filters becomes slow at scale</p>
+                    <p><strong>Impact:</strong> Poor search experience, high server load</p>
+                </div>
+                
+                <div class="solution">
+                    <strong>🔧 Solutions:</strong>
+                    <ul>
+                        <li>Use Elasticsearch cluster with proper indexing strategy</li>
+                        <li>Implement search result caching with Redis</li>
+                        <li>Use search suggestions/autocomplete to reduce query complexity</li>
+                        <li>Implement search analytics to optimize popular queries</li>
+                    </ul>
+                </div>
+                
+                <h3>Horizontal Scaling Strategy</h3>
+                
+                <div class="microservice-grid">
+                    <div class="microservice-card">
+                        <h4>Load Balancing</h4>
+                        <ul>
+                            <li>Application Load Balancer (ALB) with health checks</li>
+                            <li>Auto Scaling Groups for each microservice</li>
+                            <li>Circuit breaker pattern for service resilience</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="microservice-card">
+                        <h4>Caching Strategy</h4>
+                        <ul>
+                            <li>Redis Cluster for distributed caching</li>
+                            <li>CDN caching for static content (thumbnails, avatars)</li>
+                            <li>Application-level caching with TTL policies</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="microservice-card">
+                        <h4>Message Queue Scaling</h4
